@@ -1,0 +1,87 @@
+import sqlite3
+import sys
+from PyQt5.uic import loadUi
+from PyQt5.QtWidgets import QApplication, QMainWindow
+
+
+class StudentManagement(QMainWindow):
+    def _init_(self):
+        super(StudentManagement, self)._init_()
+        loadUi("StudentManagementUI.ui", self)
+        self.conn = sqlite3.connect("student.db")
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS STUD_DETAILS(STU_ID INTEGER PRIMARY KEY, STU_NAME TEXT, STU_CONTACT TEXT, STU_EMAIL TEXT, STU_ROLLNO TEXT)")
+        self.dbState = ""
+        self.insertBtn.clicked.connect(self.dbStateFun)
+        self.deleteBtn.clicked.connect(self.dbStateFun)
+        self.updateBtn.clicked.connect(self.dbStateFun)
+        self.displayBtn.clicked.connect(self.dbStateFun)
+        self.doneBtn.clicked.connect(self.doneFun)
+        self.deleteAllBtn.clicked.connect(self.deleteAllFun)
+
+    def doneFun(self):
+        if self.dbState == "insert":
+            self.insert()
+        elif self.dbState == "delete":
+            self.delete()
+        elif self.dbState == "update":
+            self.update()
+        elif self.dbState == "display":
+            self.display()
+
+    def deleteAllFun(self):
+        self.delete_all()
+
+    def dbStateFun(self):
+        if self.insertBtn.isChecked():
+            self.dbState = "insert"
+        elif self.deleteBtn.isChecked():
+            self.dbState = "delete"
+        elif self.updateBtn.isChecked():
+            self.dbState = "update"
+        elif self.displayBtn.isChecked():
+            self.dbState = "display"
+
+    def insert(self):
+        if self.studID.text() == '' or self.studName.text() == '' or self.studContact.text() == '' or self.studEmail.text() == '' or self.studRollNo.text() == '':
+            print("Give all required details")
+        else:
+            self.conn.execute('INSERT INTO STUD_DETAILS(STU_ID, STU_NAME,STU_CONTACT,STU_EMAIL,STU_ROLLNO) VALUES (?,?,?,?,?)', (self.studID.text(), self.studName.text(), self.studContact.text(), self.studEmail.text(), self.studRollNo.text()))
+            self.conn.commit()
+
+    def delete_all(self):
+        self.conn.execute("DROP TABLE STUD_DETAILS")
+
+    def delete(self):
+        self.conn.execute("DELETE FROM STUD_DETAILS WHERE STU_ID = " + str(self.studID.text()))
+        self.conn.commit()
+
+    def update(self):
+        if self.studID.text() == '' or self.studName.text() == '' or self.studContact.text() == '' or self.studEmail.text() == '' or self.studRollNo.text() == '':
+            print("Give all required details")
+        else:
+            self.conn.execute('INSERT INTO STUD_DETAILS(STU_ID, STU_NAME,STU_CONTACT,STU_EMAIL,STU_ROLLNO) VALUES (?,?,?,?,?) WHERE STU_ID = ' + self.studID.text(), (self.studID.text(), self.studName.text(), self.studContact.text(), self.studEmail.text(), self.studRollNo.text()))
+            self.conn.commit()
+
+    def display(self):
+        cursor = self.conn.execute("SELECT * FROM STUD_DETAILS WHERE STU_ID = " + str(self.studID.text()))
+        fetch = cursor.fetchall()
+        for data in fetch:
+            print(data[0])
+        cursor.close()
+
+
+if _name_ == '_main_':
+    app = QApplication(sys.argv)
+    window = StudentManagement()
+    window.show()
+    sys.exit(app.exec_())
+    
+    
+    
+    
+    
+    
+    
+    
+    
